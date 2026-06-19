@@ -1,0 +1,18 @@
+.player-page { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; }
+.player-bar { position: absolute; top: 0; left: 0; right: 0; z-index: 10; display: flex; align-items: center; gap: 14px; padding: 14px 24px; background: linear-gradient(to bottom, rgba(0,0,0,0.92) 0%, transparent 100%); opacity: 0; transition: opacity 0.3s; flex-wrap: wrap; }
+.player-bar.show { opacity: 1; }
+.player-back { color: #fff; font-size: 14px; font-weight: 600; padding: 6px 14px; border-radius: 6px; background: rgba(255,255,255,0.12); transition: background 0.18s; white-space: nowrap; }
+.player-back:hover { background: rgba(255,255,255,0.22); }
+.player-title { flex: 1; font-size: 13px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player-sources { display: flex; gap: 6px; flex-wrap: wrap; }
+.player-src-btn { padding: 5px 11px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.07); color: #aaa; font-size: 11px; font-weight: 600; font-family: var(--font); cursor: pointer; transition: all 0.18s; }
+.player-src-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+.player-src-btn.active { background: var(--accent); border-color: var(--accent); color: #000; }
+.player-loading { position: absolute; inset: 0; z-index: 5; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; }
+.player-loading p { color: #aaa; font-size: 14px; }
+.player-loading strong { color: #fff; }
+.player-loading-hint { color: #555 !important; font-size: 12px !important; }
+.player-try-next { margin-top: 8px; padding: 8px 20px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #fff; font-size: 13px; font-weight: 600; font-family: var(--font); cursor: pointer; transition: all 0.18s; }
+.player-try-next:hover { background: rgba(255,255,255,0.16); }
+.player-iframe { flex: 1; width: 100%; border: none; background: #000; }
+@media (max-width: 600px) { .player-bar { padding: 10px 12px; } .player-title { display: none; } .player-src-btn { padding: 4px 8px; font-size: 10px; } }

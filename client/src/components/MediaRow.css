@@ -1,0 +1,93 @@
+.mrow { padding: 0 0 12px; overflow: visible; }
+.mrow + .mrow { margin-top: 28px; }
+
+.mrow-header { display: flex; align-items: center; justify-content: space-between; padding: 0 56px 14px; }
+.mrow-title { font-size: 19px; font-weight: 700; color: #fff; }
+.mrow-seeall { font-size: 13px; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 4px; padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(70,211,105,0.3); background: none; cursor: pointer; transition: all 0.18s; }
+.mrow-seeall:hover { background: var(--accent-dim); border-color: var(--accent); }
+.mrow-seeall span { font-size: 15px; }
+
+.mrow-track { display: flex; gap: 6px; padding: 4px 56px 8px; overflow-x: auto; overflow-y: visible; scrollbar-width: none; align-items: flex-start; }
+.mrow-track::-webkit-scrollbar { display: none; }
+
+/* ── Card: width-only expansion, height stays locked ── */
+.mcard {
+  flex-shrink: 0;
+  width: 155px;
+  cursor: pointer;
+  border-radius: 6px;
+  position: relative;
+  z-index: 1;
+  transition: width 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              z-index 0s 0.32s;
+}
+.mcard.expanded {
+  width: 300px;
+  z-index: 10;
+  transition: width 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              z-index 0s;
+}
+
+/* Inner container: fixed height always = portrait ratio of base width
+   155px wide × (3/2) = 232px tall. Lock this height on both states. */
+.mcard-inner {
+  position: relative;
+  width: 100%;
+  height: 232px;          /* locked — never changes */
+  border-radius: 6px;
+  overflow: hidden;
+  background: #141414;
+  transition: box-shadow 0.25s;
+}
+.mcard.expanded .mcard-inner {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.85), 0 0 0 2px rgba(255,255,255,0.1);
+}
+
+/* Image always fills the fixed-height container */
+.mcard-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.32s ease;
+}
+.mcard.expanded .mcard-inner img { transform: scale(1.03); }
+
+.mcard-no-img { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #1a1a1a; font-size: 30px; font-weight: 700; color: #333; }
+
+/* Overlay */
+.mcard-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+.mcard:hover .mcard-overlay, .mcard.expanded .mcard-overlay { opacity: 1; }
+
+.mcard-play-btn { width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.92); display: flex; align-items: center; justify-content: center; color: #000; font-size: 16px; transform: scale(0.78); transition: transform 0.18s, background 0.15s; box-shadow: 0 2px 14px rgba(0,0,0,0.5); }
+.mcard.expanded .mcard-play-btn { transform: scale(1); }
+.mcard-play-btn:hover { background: #fff; transform: scale(1.1) !important; }
+
+.mcard-badge-rating { position: absolute; top: 7px; left: 7px; background: rgba(0,0,0,0.82); color: var(--accent); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+
+.mcard-expanded-bar { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 10px 10px; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%); }
+.mcard-exp-title { font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Description panel */
+.mrow-info-panel { max-height: 0; overflow: hidden; transition: max-height 0.28s ease, opacity 0.22s ease; opacity: 0; padding: 0 56px; }
+.mrow-info-panel.show { max-height: 120px; opacity: 1; }
+.mrow-info-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 12px 0 8px; border-top: 1px solid rgba(255,255,255,0.06); }
+.mrow-info-text { flex: 1; min-width: 0; }
+.mrow-info-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mrow-info-meta { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #777; margin-bottom: 5px; }
+.mrow-info-rating { color: var(--accent); font-weight: 700; }
+.mrow-info-type { background: rgba(255,255,255,0.08); padding: 1px 7px; border-radius: 3px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+.mrow-info-overview { font-size: 12px; color: #777; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mrow-info-cta { flex-shrink: 0; padding: 9px 20px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.22); background: rgba(255,255,255,0.07); color: #fff; font-size: 13px; font-weight: 600; font-family: var(--font); cursor: pointer; transition: all 0.18s; white-space: nowrap; }
+.mrow-info-cta:hover { background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.4); }
+
+@media (max-width: 768px) {
+  .mrow-header { padding: 0 20px 12px; }
+  .mrow-track { padding: 4px 20px 8px; }
+  .mrow-info-panel { padding: 0 20px; }
+  .mcard { width: 118px; }
+  .mcard.expanded { width: 220px; }
+  .mcard-inner { height: 177px; }
+  .mrow-title { font-size: 16px; }
+  .mrow-info-panel.show { max-height: 140px; }
+}
