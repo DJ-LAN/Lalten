@@ -31,6 +31,7 @@ export const api = {
 
 export const SOURCES = {
   movie: [
+    id => `https://moviesdl.cc/p/info.html?id=${id}&type=movie`,
     id => `https://vidfast.pro/movie/${id}`,
     id => `https://vidlink.pro/movie/${id}`,
     id => `https://player.videasy.net/movie/${id}`,
@@ -41,6 +42,7 @@ export const SOURCES = {
     id => `https://www.2embed.cc/embed/${id}`,
   ],
   tv: [
+    (id,s,e) => `https://moviesdl.cc/p/info.html?id=${id}&type=tv&season=${s}&episode=${e}`,
     (id,s,e) => `https://vidfast.pro/tv/${id}/${s}/${e}`,
     (id,s,e) => `https://vidlink.pro/tv/${id}/${s}/${e}`,
     (id,s,e) => `https://player.videasy.net/tv/${id}/${s}/${e}`,
@@ -51,7 +53,7 @@ export const SOURCES = {
     (id,s,e) => `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`,
   ],
 };
-export const SOURCE_LABELS = ['VidFast','VidLink','Videasy','AutoEmbed','VidSrc CC','MultiEmbed','VidSrc ME','2Embed'];
+export const SOURCE_LABELS = ['MoviesDL','VidFast','VidLink','Videasy','AutoEmbed','VidSrc CC','MultiEmbed','VidSrc ME','2Embed'];
 
 // ── Lighten Up — My Shows favourites ─────────────────────
 const FAV_KEY = 'lantern_myshows';
