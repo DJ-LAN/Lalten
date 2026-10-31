@@ -1,0 +1,46 @@
+/* Ambient trailer behind the detail page — faded, looping, non-interactive. */
+.detail-trailer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  animation: trailerFadeIn 1.6s ease 0.15s forwards;
+}
+
+.detail-trailer iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100vw;
+  height: 56.25vw;       /* 16:9 */
+  min-width: 177.78vh;   /* cover tall screens too */
+  min-height: 100vh;
+  transform: translate(-50%, -50%);
+  border: 0;
+  opacity: 0;
+  animation: trailerVideoIn 1.2s ease 0.4s forwards;
+}
+
+/* Keep the text column readable while the video peeks through. */
+.detail-trailer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 48%, rgba(0,0,0,0.12) 78%, transparent 100%),
+    linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 35%, rgba(0,0,0,0.55) 78%, var(--bg) 100%);
+}
+
+@keyframes trailerFadeIn {
+  to { opacity: 1; }
+}
+
+@keyframes trailerVideoIn {
+  to { opacity: 0.42; }
+}
+
+@media (max-width: 768px) {
+  .detail-trailer { display: none; } /* save mobile data; backdrop stays */
+}

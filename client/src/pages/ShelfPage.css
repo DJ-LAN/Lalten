@@ -1,0 +1,116 @@
+.shelf { min-height: 100vh; padding-top: var(--nav-h); overflow: hidden; }
+
+/* ── Header ─────────────────────────────────────────── */
+.shelf-header {
+  position: relative;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 66px 56px 34px;
+}
+
+.shelf-glow {
+  position: absolute;
+  top: -220px;
+  left: -140px;
+  width: 780px;
+  height: 620px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 68%);
+  filter: blur(30px);
+  pointer-events: none;
+}
+
+.shelf-header::after {
+  content: '';
+  position: absolute;
+  left: 56px;
+  right: 56px;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent-glow), transparent 70%);
+}
+
+.shelf-eyebrow {
+  position: relative;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+.shelf-title {
+  position: relative;
+  font-size: clamp(38px, 7vw, 76px);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -2.5px;
+  margin-bottom: 18px;
+}
+
+.shelf-sub {
+  position: relative;
+  max-width: 560px;
+  color: var(--text-sub);
+  font-size: 15px;
+  line-height: 1.75;
+  margin-bottom: 26px;
+}
+
+.shelf-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.shelf-surprise {
+  padding: 11px 24px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #000;
+  font-size: 14px;
+  font-weight: 800;
+  font-family: var(--font);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.shelf-surprise:hover {
+  transform: scale(1.04);
+  box-shadow: 0 0 26px var(--accent-glow);
+}
+
+.shelf-badges { display: flex; flex-wrap: wrap; gap: 7px; }
+.shelf-badges span {
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-sub);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+/* ── Rows ───────────────────────────────────────────── */
+.shelf-rows { position: relative; z-index: 1; padding-top: 26px; }
+
+.shelf-note {
+  padding: 10px 56px 64px;
+  color: #444;
+  font-size: 12px;
+  line-height: 1.6;
+  max-width: 720px;
+}
+
+@media (max-width: 768px) {
+  .shelf-header { padding: 44px 20px 26px; }
+  .shelf-header::after { left: 20px; right: 20px; }
+  .shelf-glow { top: -260px; left: -240px; opacity: 0.7; }
+  .shelf-title { letter-spacing: -1.5px; }
+  .shelf-sub { font-size: 14px; }
+  .shelf-note { padding: 4px 20px 48px; }
+}

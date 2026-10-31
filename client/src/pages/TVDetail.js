@@ -1,22 +1,40 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { api, poster, backdrop } from '../utils/api';
+import { api, poster, backdrop, pickTrailer, isBlockedRating } from '../utils/api';
 import MediaRow from '../components/MediaRow';
 import LightenUp from '../components/LightenUp';
+import BackgroundTrailer from '../components/BackgroundTrailer';
+import ContentWarning from '../components/ContentWarning';
 import './DetailPage.css';
 
 export default function TVDetail() {
   const { id } = useParams();
   const [data, setData] = useState(null);
+  const [rating, setRating] = useState(undefined);
+  const [proceed, setProceed] = useState(false);
   const [selSeason, setSelSeason] = useState(1);
   const [episodes, setEpisodes] = useState([]);
   const [loadingEps, setLoadingEps] = useState(false);
   const videoEnabled = localStorage.getItem('ln_video') !== 'false';
+  const autoTrailer = localStorage.getItem('ln_autotrailer') !== 'false';
+  const safeMode = localStorage.getItem('ln_safe') === 'true';
 
   useEffect(() => {
     window.scrollTo(0,0);
     api.tv(id).then(d => { setData(d); setSelSeason(1); }).catch(console.error);
   }, [id]);
+
+  // Check the certification only when the R-rated filter is on.
+  useEffect(() => {
+    setProceed(false);
+    if (!safeMode) { setRating(null); return undefined; }
+    let alive = true;
+    setRating(undefined);
+    api.rating('tv', id)
+      .then(r => { if (alive) setRating(r?.rating || null); })
+      .catch(() => { if (alive) setRating(null); });
+    return () => { alive = false; };
+  }, [id, safeMode]);
 
   useEffect(() => {
     if (!data) return;
@@ -27,9 +45,13 @@ export default function TVDetail() {
   }, [id, data, selSeason]);
 
   if (!data) return <div className="detail-page"><div className="spinner" /></div>;
+  if (safeMode && rating === undefined) return <div className="detail-page"><div className="spinner" /></div>;
+  if (safeMode && isBlockedRating('tv', rating) && !proceed) {
+    return <ContentWarning type="tv" title={data.name} rating={rating} onProceed={() => setProceed(true)} />;
+  }
 
   const bg = backdrop(data.backdrop_path);
-  const trailer = data.videos?.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+  const trailer = pickTrailer(data.videos?.results);
   const cast = data.credits?.cast?.slice(0,14) || [];
   const year = data.first_air_date?.slice(0,4);
   const seasons = (data.seasons || []).filter(s => s.season_number > 0);
@@ -40,6 +62,7 @@ export default function TVDetail() {
   return (
     <div className="detail-page">
       {bg && <div className="detail-bg-wrap"><img src={bg} alt="" className="detail-bg-img" /><div className="detail-bg-ov" /></div>}
+      <BackgroundTrailer videoKey={trailer?.key} enabled={autoTrailer} />
       <div className="detail-main">
         {data.poster_path
           ? <img src={poster(data.poster_path,'w500')} alt={data.name} className="detail-poster" />

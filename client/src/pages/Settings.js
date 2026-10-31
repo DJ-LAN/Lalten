@@ -25,6 +25,8 @@ export default function Settings() {
   const [apiStatus, setApiStatus]     = useState(null);
   const [colorSaved, setColorSaved]   = useState(false);
   const [videoEnabled, setVideoEnabled] = useState(localStorage.getItem('ln_video') !== 'false');
+  const [autoTrailer, setAutoTrailer] = useState(localStorage.getItem('ln_autotrailer') !== 'false');
+  const [safeMode, setSafeMode] = useState(localStorage.getItem('ln_safe') === 'true');
 
   useEffect(() => {
     const a = localStorage.getItem('ln_accent');
@@ -75,6 +77,18 @@ export default function Settings() {
     localStorage.setItem('ln_video', String(next));
   };
 
+  const toggleAutoTrailer = () => {
+    const next = !autoTrailer;
+    setAutoTrailer(next);
+    localStorage.setItem('ln_autotrailer', String(next));
+  };
+
+  const toggleSafeMode = () => {
+    const next = !safeMode;
+    setSafeMode(next);
+    localStorage.setItem('ln_safe', String(next));
+  };
+
   return (
     <div className="sp page">
       <div className="sp-inner">
@@ -111,6 +125,31 @@ export default function Settings() {
             </button>
           </div>
           <p className="sp-toggle-status">Playback is <strong style={{color:videoEnabled?'var(--accent)':'#e74c3c'}}>{videoEnabled?'enabled':'disabled'}</strong>.</p>
+          <div className="sp-toggle-row" style={{marginTop:20}}>
+            <div>
+              <p className="sp-toggle-label">Auto-play background trailers</p>
+              <p className="sp-hint" style={{marginBottom:0}}>After 5 seconds on a title page, play a muted trailer behind the details. Off on mobile and data-saver.</p>
+            </div>
+            <button className={`sp-toggle ${autoTrailer?'on':'off'}`} onClick={toggleAutoTrailer}>
+              <span className="sp-toggle-knob" />
+            </button>
+          </div>
+          <p className="sp-toggle-status">Background trailers are <strong style={{color:autoTrailer?'var(--accent)':'#e74c3c'}}>{autoTrailer?'on':'off'}</strong>.</p>
+        </div>
+
+        {/* CONTENT FILTER */}
+        <div className="sp-section">
+          <h2 className="sp-stitle">Content Filter</h2>
+          <div className="sp-toggle-row">
+            <div>
+              <p className="sp-toggle-label">Block R-rated</p>
+              <p className="sp-hint" style={{marginBottom:0}}>Hides restricted movies and mature series while browsing. Opening one shows a warning first.</p>
+            </div>
+            <button className={`sp-toggle ${safeMode?'on':'off'}`} onClick={toggleSafeMode}>
+              <span className="sp-toggle-knob" />
+            </button>
+          </div>
+          <p className="sp-toggle-status">R-rated filter is <strong style={{color:safeMode?'var(--accent)':'#e74c3c'}}>{safeMode?'on':'off'}</strong>.</p>
         </div>
 
         {/* ACCENT */}

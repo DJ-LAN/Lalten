@@ -26,9 +26,14 @@ export default function Home() {
       safe(() => api.indianSeries()),
       safe(() => api.topRated('movie')),
       safe(() => api.topRated('tv')),
-      safe(() => api.discover('tv', { with_networks: '213',  sort_by: 'popularity.desc' })),
-      safe(() => api.discover('tv', { with_networks: '1024', sort_by: 'popularity.desc' })),
-      safe(() => api.discover('tv', { with_networks: '3919', sort_by: 'popularity.desc' })),
+      safe(() => api.netflixIndia()),
+      safe(() => api.newOn('netflix')),
+      safe(() => api.newOn('prime')),
+      safe(() => api.newOn('hotstar')),
+      safe(() => api.newOn('apple')),
+      safe(() => api.newOn('sonyliv')),
+      safe(() => api.newOn('zee5')),
+      safe(() => api.newOn('mx')),
       safe(() => api.anime()),
       safe(() => api.discover('movie', { genre: '28,878', sort_by: 'popularity.desc' })),
       safe(() => api.discover('movie', { genre: '27,53',  sort_by: 'popularity.desc' })),
@@ -57,7 +62,8 @@ export default function Home() {
   );
 
   const [indMov, bolly, south, global, nowPlay, casual, adventure,
-         indSer, topMov, topTV, netflix, prime, hotstar,
+         indSer, topMov, topTV, netflixIndia, netflix, prime, hotstar,
+         apple, sonyliv, zee5, mx,
          anime, actionSci, horror, crime] = sections;
 
   const heroItems = pick([...indMov, ...global]).slice(0, 10);
@@ -66,15 +72,20 @@ export default function Home() {
     <div>
       <Hero items={heroItems} />
       <div style={{ position: 'relative', zIndex: 1, paddingTop: 8 }}>
+        <MediaRow title="Just Lit on Netflix"      items={netflix}         type="tv"    browseType="netflix" />
+        <MediaRow title="New on Netflix India"     items={netflixIndia}    type="tv"    browseType="netflix-india" />
+        <MediaRow title="Just Lit on Prime Video"  items={prime}           type="tv"    browseType="prime" />
+        <MediaRow title="Just Lit on JioHotstar"   items={hotstar}         type="tv"    browseType="hotstar" />
+        <MediaRow title="Just Lit on Apple TV+"    items={apple}           type="tv"    browseType="apple" />
+        <MediaRow title="Just Lit on SonyLIV"      items={sonyliv}         type="tv"    browseType="sonyliv" />
+        <MediaRow title="Just Lit on Zee5"         items={zee5}            type="tv"    browseType="zee5" />
+        <MediaRow title="Just Lit on MX Player"    items={mx}              type="tv"    browseType="mx" />
         <MediaRow title="Casual Entertainment"     items={pick(casual)}    type="movie" browseType="comedy" />
         <MediaRow title="Adventure Series"         items={pick(adventure)} type="tv"    browseType="adventure" />
         <MediaRow title="Anime"                    items={pick(anime)}     type="tv"    browseType="anime" />
         <MediaRow title="Top Rated Series"         items={pick(topTV)}     type="tv"    browseType="top-series" />
-        <MediaRow title="Trending on Netflix"      items={pick(netflix)}   type="tv"    browseType="netflix" />
-        <MediaRow title="Trending on Prime Video"  items={pick(prime)}     type="tv"    browseType="prime" />
         <MediaRow title="Trending Worldwide"       items={pick(global)}                 browseType="trending" />
         <MediaRow title="In Theatres Now"          items={pick(nowPlay)}   type="movie" browseType="now-playing" />
-        <MediaRow title="Trending on Hotstar"      items={pick(hotstar)}   type="tv"    browseType="hotstar" />
         <MediaRow title="Indian Web Series"        items={pick(indSer)}    type="tv"    browseType="indian-series" />
         <MediaRow title="Trending in India"        items={pick(indMov)}    type="movie" browseType="trending-india" />
         <MediaRow title="Bollywood"                items={pick(bolly)}     type="movie" browseType="bollywood" />

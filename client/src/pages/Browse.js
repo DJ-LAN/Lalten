@@ -6,7 +6,6 @@ import './Browse.css';
 const CATS = {
   'movie':          { label: 'Movies',               fn: p => api.discover('movie', { sort_by: 'popularity.desc', page: p }) },
   'tv':             { label: 'Series',               fn: p => api.discover('tv',    { sort_by: 'popularity.desc', page: p }) },
-  'kids':           { label: 'Kids',                  fn: p => api.discover('movie', { genre: '16,10751', sort_by: 'popularity.desc', page: p }) },
   'comedy':         { label: 'Casual Entertainment', fn: p => api.discover('movie', { genre: '35,10751', sort_by: 'popularity.desc', page: p }) },
   'adventure':      { label: 'Adventure Series',     fn: p => api.discover('tv',    { genre: '10759,35', sort_by: 'popularity.desc', page: p }) },
   'trending-india': { label: 'Trending in India',    fn: ()  => api.trendingIndia('movie') },
@@ -14,9 +13,14 @@ const CATS = {
   'south-indian':   { label: 'South Indian',         fn: ()  => api.southIndian() },
   'trending':       { label: 'Trending Worldwide',   fn: ()  => api.trending('all') },
   'now-playing':    { label: 'In Theatres Now',      fn: ()  => api.nowPlaying() },
-  'netflix':        { label: 'Trending on Netflix',  fn: p  => api.discover('tv', { with_networks: '213',  sort_by: 'popularity.desc', page: p }) },
-  'prime':          { label: 'Trending on Prime',    fn: p  => api.discover('tv', { with_networks: '1024', sort_by: 'popularity.desc', page: p }) },
-  'hotstar':        { label: 'Trending on Hotstar',  fn: p  => api.discover('tv', { with_networks: '3919', sort_by: 'popularity.desc', page: p }) },
+  'netflix':        { label: 'Just Lit on Netflix',      chrono: true, fn: p => api.newOn('netflix', p) },
+  'netflix-india':  { label: 'New on Netflix India',     chrono: true, fn: p => api.netflixIndia(p) },
+  'prime':          { label: 'Just Lit on Prime Video',  chrono: true, fn: p => api.newOn('prime', p) },
+  'hotstar':        { label: 'Just Lit on JioHotstar',   chrono: true, fn: p => api.newOn('hotstar', p) },
+  'apple':          { label: 'Just Lit on Apple TV+',    chrono: true, fn: p => api.newOn('apple', p) },
+  'sonyliv':        { label: 'Just Lit on SonyLIV',      chrono: true, fn: p => api.newOn('sonyliv', p) },
+  'zee5':           { label: 'Just Lit on Zee5',         chrono: true, fn: p => api.newOn('zee5', p) },
+  'mx':             { label: 'Just Lit on MX Player',    chrono: true, fn: p => api.newOn('mx', p) },
   'top-movies':     { label: 'Top Rated Movies',     fn: p  => api.discover('movie', { sort_by: 'vote_average.desc', 'vote_count.gte': 200, page: p }) },
   'top-series':     { label: 'Top Rated Series',     fn: p  => api.discover('tv',    { sort_by: 'vote_average.desc', 'vote_count.gte': 100, page: p }) },
   'indian-series':  { label: 'Indian Web Series',   fn: ()  => api.indianSeries() },
@@ -59,7 +63,9 @@ export default function Browse() {
     setLoading(true);
     try {
       const data = await cat.fn(pg);
-      const results = (data.results || []).filter(i => i.poster_path).sort(() => Math.random() - 0.5);
+      const results = (data.results || []).filter(i => i.poster_path);
+      // Keep newest-first ordering for the "Just Lit" shelves; shuffle the rest.
+      if (!cat.chrono) results.sort(() => Math.random() - 0.5);
       setItems(prev => pg === 1 ? results : [...prev, ...results]);
       setHasMore(results.length > 0);
       setPage(pg + 1);

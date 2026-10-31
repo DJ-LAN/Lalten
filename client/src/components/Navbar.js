@@ -34,7 +34,7 @@ export default function Navbar() {
           <Link to="/my-shows"   className={`nav-link ${active('/my-shows')?'active':''}`}>My Shows</Link>
           <Link to="/browse/movie" className={`nav-link ${active('/browse/movie')?'active':''}`}>Movies</Link>
           <Link to="/browse/tv"  className={`nav-link ${active('/browse/tv')?'active':''}`}>Series</Link>
-          <Link to="/browse/kids" className={`nav-link ${active('/browse/kids')?'active':''}`}>Kids</Link>
+          <Link to="/kids"       className={`nav-link ${active('/kids')?'active':''}`}>Kids</Link>
           <Link to="/settings"   className={`nav-link ${active('/settings')?'active':''}`}>Settings</Link>
         </div>
         <div className="nav-right">

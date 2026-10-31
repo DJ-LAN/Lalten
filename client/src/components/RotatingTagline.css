@@ -1,0 +1,30 @@
+/* Rotating section headline — soft lantern-style fade between lines. */
+.rotating-tagline {
+  position: relative;
+  /* Leave margin-bottom to the page's own title class. */
+  margin-top: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.rotating-tagline-inner {
+  display: inline-block;
+  animation: taglineIn 0.85s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes taglineIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rotating-tagline-inner { animation: none; }
+}
