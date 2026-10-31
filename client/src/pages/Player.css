@@ -1,13 +1,69 @@
 .player-page { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; }
-.player-bar { position: absolute; top: 0; left: 0; right: 0; z-index: 10; display: flex; align-items: center; gap: 14px; padding: 14px 24px; background: linear-gradient(to bottom, rgba(0,0,0,0.92) 0%, transparent 100%); opacity: 0; transition: opacity 0.3s; flex-wrap: wrap; }
+.player-bar { position: absolute; top: 0; left: 0; right: 0; z-index: 10; display: flex; align-items: center; gap: 14px; padding: 14px 24px; background: linear-gradient(to bottom, rgba(0,0,0,0.92) 0%, transparent 100%); opacity: 0; transition: opacity 0.3s; flex-wrap: wrap; pointer-events: none; }
 .player-bar.show { opacity: 1; }
-.player-back { color: #fff; font-size: 14px; font-weight: 600; padding: 6px 14px; border-radius: 6px; background: rgba(255,255,255,0.12); transition: background 0.18s; white-space: nowrap; }
+/* Hover strip: only 10px tall so the embedded player's own top-right buttons stay clickable. */
+.player-peek { position: absolute; top: 0; left: 0; right: 0; height: 10px; z-index: 11; }
+.player-peek::after { content: ''; position: absolute; left: 50%; top: 3px; width: 44px; height: 4px; margin-left: -22px; border-radius: 4px; background: rgba(255,255,255,0.35); opacity: 0; transition: opacity 0.3s; }
+.player-peek.idle::after { opacity: 1; }
+.player-back { pointer-events: auto; color: #fff; font-size: 14px; font-weight: 600; padding: 6px 14px; border-radius: 6px; background: rgba(255,255,255,0.12); transition: background 0.18s; white-space: nowrap; }
 .player-back:hover { background: rgba(255,255,255,0.22); }
 .player-title { flex: 1; font-size: 13px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.player-sources { display: flex; gap: 6px; flex-wrap: wrap; }
-.player-src-btn { padding: 5px 11px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.07); color: #aaa; font-size: 11px; font-weight: 600; font-family: var(--font); cursor: pointer; transition: all 0.18s; }
-.player-src-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
-.player-src-btn.active { background: var(--accent); border-color: var(--accent); color: #000; }
+/* ── Server deck: black neon playing cards stacked at the top centre ── */
+.player-deck { position: absolute; left: 50%; top: 20px; width: 0; height: 0; z-index: 12; pointer-events: none; }
+/* Small invisible hover zone so the bar can wake up; the rest of the top strip stays click-through to the video player. */
+.player-deck::before { content: ''; position: absolute; left: -110px; top: -20px; width: 220px; height: 70px; pointer-events: auto; }
+
+.player-title { transition: opacity 0.25s; }
+.player-bar:has(.player-deck.open) .player-title { opacity: 0; }
+
+.deck-card {
+  --c: #b44cff;                       /* unselected: neon purple */
+  --cg: rgba(180, 76, 255, 0.5);
+  position: absolute; left: 0; top: 0; padding: 0; border: 0; background: none;
+  cursor: pointer; font-family: var(--font); will-change: transform;
+  transition: transform 0.65s cubic-bezier(0.2, 0.95, 0.3, 1.08), opacity 0.25s ease;
+}
+.deck-card.active { --c: var(--accent); --cg: var(--accent-glow); }   /* selected: accent */
+.deck-card:focus-visible { outline: none; }
+.deck-card:focus-visible .card-face { box-shadow: 0 0 0 2px #fff, 0 0 12px var(--cg); }
+.player-deck.open .deck-card:hover { z-index: 60 !important; }
+
+.card-face {
+  position: relative; display: block; width: 100%; height: 100%;
+  border-radius: 7px; border: 1.5px solid var(--c); overflow: hidden;
+  background:
+    radial-gradient(circle, var(--cg) 0.8px, transparent 1.4px) 0 0 / 9px 9px,
+    radial-gradient(ellipse at center, #0d0716 0%, #000 78%);
+  background-blend-mode: normal;
+  box-shadow: 0 0 10px var(--cg), inset 0 0 10px var(--cg), 0 3px 8px rgba(0,0,0,0.6);
+  transition: transform 0.2s ease;
+}
+.player-deck.open .deck-card:hover .card-face { transform: translateY(-6px) scale(1.06); }
+.card-face::before { content: ''; position: absolute; inset: 3px; border: 1px solid var(--c); border-radius: 5px; opacity: 0.4; pointer-events: none; }
+
+.corner { position: absolute; z-index: 1; display: flex; flex-direction: column; align-items: center; line-height: 1; font-weight: 700; color: var(--c); text-shadow: 0 0 6px var(--cg); }
+.corner b { font-size: 9px; }
+.corner i { font-style: normal; font-size: 8px; margin-top: 1px; }
+.corner.tl { top: 5px; left: 6px; }
+.corner.br { bottom: 5px; right: 6px; transform: rotate(180deg); }
+.spark { position: absolute; z-index: 1; top: 2px; right: 5px; font-size: 11px; line-height: 1; color: var(--c); text-shadow: 0 0 6px var(--cg); }
+.name {
+  position: absolute; z-index: 1; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+  text-align: center; font-weight: 800; line-height: 1; white-space: nowrap;
+  color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.35);
+}
+.deck-card.active .name { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+
+.deck-card.landed .card-face { animation: deck-land 0.8s ease-out; }
+@keyframes deck-land {
+  0%   { filter: brightness(1.5); }
+  40%  { box-shadow: 0 0 26px 6px var(--cg), inset 0 0 12px var(--cg), 0 3px 8px rgba(0,0,0,0.6); }
+  100% { filter: brightness(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .deck-card { transition-duration: 0.01s; transition-delay: 0s !important; }
+  .deck-card.landed .card-face { animation: none; }
+}
 .player-loading { position: absolute; inset: 0; z-index: 5; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; }
 .player-loading p { color: #aaa; font-size: 14px; }
 .player-loading strong { color: #fff; }
@@ -15,4 +71,4 @@
 .player-try-next { margin-top: 8px; padding: 8px 20px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: #fff; font-size: 13px; font-weight: 600; font-family: var(--font); cursor: pointer; transition: all 0.18s; }
 .player-try-next:hover { background: rgba(255,255,255,0.16); }
 .player-iframe { flex: 1; width: 100%; border: none; background: #000; }
-@media (max-width: 600px) { .player-bar { padding: 10px 12px; } .player-title { display: none; } .player-src-btn { padding: 4px 8px; font-size: 10px; } }
+@media (max-width: 600px) { .player-bar { padding: 10px 12px; } .player-title { display: none; } .corner b { font-size: 7px; } .corner i { font-size: 6.5px; } .corner.tl { top: 3px; left: 4px; } .corner.br { bottom: 3px; right: 4px; } .spark { font-size: 8px; top: 2px; right: 3px; } }
