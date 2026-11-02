@@ -61,3 +61,10 @@
 .sp-custom-color-input::-webkit-color-swatch-wrapper { padding: 0; }
 .sp-custom-color-input::-webkit-color-swatch { border: none; border-radius: 50%; }
 .sp-custom-color-input::-moz-color-swatch { border: none; border-radius: 50%; }
+
+.sp-trailer-volume { margin: 14px 0 0; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: #141414; transition: opacity 0.2s; }
+.sp-trailer-volume.disabled { opacity: 0.45; }
+.sp-volume-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+.sp-volume-heading strong { color: var(--accent); font-size: 13px; font-variant-numeric: tabular-nums; }
+.sp-volume-range { display: block; width: 100%; accent-color: var(--accent); cursor: pointer; }
+.sp-volume-range:disabled { cursor: not-allowed; }

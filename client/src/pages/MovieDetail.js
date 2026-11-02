@@ -14,6 +14,11 @@ export default function MovieDetail() {
   const [proceed, setProceed] = useState(false);
   const videoEnabled = localStorage.getItem('ln_video') !== 'false';
   const autoTrailer = localStorage.getItem('ln_autotrailer') !== 'false';
+  const trailerAudio = localStorage.getItem('ln_trailer_audio') !== 'false';
+  const storedTrailerVolume = localStorage.getItem('ln_trailer_volume');
+  const savedTrailerVolume = storedTrailerVolume === null ? 55 : Number(storedTrailerVolume);
+  const trailerVolume = Number.isFinite(savedTrailerVolume) && savedTrailerVolume >= 0 && savedTrailerVolume <= 100
+    ? savedTrailerVolume : 55;
   const safeMode = localStorage.getItem('ln_safe') === 'true';
 
   useEffect(() => { window.scrollTo(0,0); api.movie(id).then(setData).catch(console.error); }, [id]);
@@ -48,7 +53,7 @@ export default function MovieDetail() {
   return (
     <div className="detail-page">
       {bg && <div className="detail-bg-wrap"><img src={bg} alt="" className="detail-bg-img" /><div className="detail-bg-ov" /></div>}
-      <BackgroundTrailer videoKey={trailer?.key} enabled={autoTrailer} />
+      <BackgroundTrailer videoKey={trailer?.key} enabled={autoTrailer} audioEnabled={trailerAudio} volume={trailerVolume} />
       <div className="detail-main">
         {data.poster_path
           ? <img src={poster(data.poster_path,'w500')} alt={data.title} className="detail-poster" />
