@@ -8,7 +8,14 @@ export default function ContentWarning({ title, rating, type = 'movie', onProcee
   return (
     <div className="cw-page" role="dialog" aria-modal="true" aria-labelledby="cw-title">
       <div className="cw-card">
-        <div className="cw-shield" aria-hidden="true">⚠</div>
+        <div className="cw-shield" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"
+            strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3.2 2.4 20.4h19.2L12 3.2Z" />
+            <path d="M12 9.2v4.6" />
+            <circle cx="12" cy="17" r="1.05" fill="currentColor" stroke="none" />
+          </svg>
+        </div>
         <div className="cw-badge">{rating || 'RESTRICTED'}</div>
         <h1 className="cw-title" id="cw-title">This {label} is rated {rating || 'restricted'}.</h1>
         <p className="cw-name">“{title}”</p>

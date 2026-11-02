@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { api, poster, backdrop, pickTrailer, isBlockedRating } from '../utils/api';
 import MediaRow from '../components/MediaRow';
 import LightenUp from '../components/LightenUp';
@@ -9,6 +9,8 @@ import './DetailPage.css';
 
 export default function TVDetail() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const requestedSeason = parseInt(searchParams.get('season'), 10);
   const [data, setData] = useState(null);
   const [rating, setRating] = useState(undefined);
   const [proceed, setProceed] = useState(false);
@@ -21,8 +23,13 @@ export default function TVDetail() {
 
   useEffect(() => {
     window.scrollTo(0,0);
-    api.tv(id).then(d => { setData(d); setSelSeason(1); }).catch(console.error);
-  }, [id]);
+    api.tv(id).then(d => {
+      setData(d);
+      const valid = Number.isInteger(requestedSeason)
+        && (d.seasons || []).some(s => s.season_number === requestedSeason);
+      setSelSeason(valid ? requestedSeason : 1);
+    }).catch(console.error);
+  }, [id, requestedSeason]);
 
   // Check the certification only when the R-rated filter is on.
   useEffect(() => {
@@ -81,7 +88,7 @@ export default function TVDetail() {
           </div>
           <p className="detail-overview">{data.overview}</p>
           <div className="detail-actions">
-            <Link to={playTo(1,1)} className="btn-play">▶ &nbsp; Play S1 E1</Link>
+            <Link to={playTo(selSeason, 1)} className="btn-play">▶ &nbsp; Play S{selSeason} E1</Link>
             {trailer && (
               <a href={`https://youtube.com/watch?v=${trailer.key}`} target="_blank" rel="noreferrer" className="btn-secondary">
                 ▷ &nbsp; Trailer

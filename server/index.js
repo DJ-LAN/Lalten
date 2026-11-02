@@ -133,13 +133,157 @@ const KID_SAFE = {
   without_genres: '27,53,80,10752',
   'vote_count.gte': 20,
 };
+
+// TMDB stores the whole Power Rangers franchise as ONE show (id 2328) with
+// 30 seasons, so a search can never list the eras as separate shows. Build
+// the shelf from those seasons instead, plus the standalone Alien Rangers run.
+const POWER_RANGERS_SHOW_ID = 2328;
+const POWER_RANGERS_ALIEN_ID = 321123;
+
+function toTVCard(show) {
+  return {
+    id: show.id,
+    name: show.name,
+    title: show.name,
+    poster_path: show.poster_path,
+    first_air_date: show.first_air_date,
+    vote_average: show.vote_average || 0,
+    overview: show.overview || '',
+    media_type: 'tv',
+  };
+}
+
+function powerRangersSeasonName(season) {
+  if (season.season_number === 1) return 'Mighty Morphin Power Rangers';
+  if (season.season_number <= 3) return `Mighty Morphin Power Rangers (Season ${season.season_number})`;
+  return `Power Rangers ${season.name}`;
+}
+
+async function powerRangersItems() {
+  const [show, alien] = await Promise.all([
+    tmdb(`/tv/${POWER_RANGERS_SHOW_ID}`).catch(() => null),
+    tmdb(`/tv/${POWER_RANGERS_ALIEN_ID}`).catch(() => null),
+  ]);
+  if (!show) return [];
+
+  const items = (show.seasons || [])
+    .filter(s => s.season_number > 0 && s.poster_path)
+    .map(s => {
+      const name = powerRangersSeasonName(s);
+      return {
+        id: show.id,
+        season_number: s.season_number,
+        name,
+        title: name,
+        poster_path: s.poster_path,
+        first_air_date: s.air_date,
+        vote_average: s.vote_average || 0,
+        overview: s.overview || show.overview || '',
+        media_type: 'tv',
+      };
+    });
+
+  // Alien Rangers aired between Mighty Morphin season 3 and Zeo.
+  if (alien?.poster_path) {
+    const at = items.findIndex(i => i.season_number === 4);
+    items.splice(at === -1 ? items.length : at, 0, toTVCard(alien));
+  }
+
+  return items;
+}
+
+// Ultraman is many separate TMDB shows, but the old keyword query also had a
+// 20-vote floor that hid the older entries. Curated IDs keep the full run in
+// broadcast order.
+const ULTRAMAN_TV_IDS = [
+  4766, 3425, 77396, 4580, 1279, 3856, 5157, 6218, 1157,       // 1966–1980
+  18303, 18305, 2253, 3459, 4426, 6242, 2434, 1281, 3155,      // 1990–2005
+  5646, 6680, 68693, 137788, 66631, 67904, 73169, 81959,       // 2006–2018
+  88597, 101005, 123417, 154129, 213442, 251104, 308216,       // 2019–2026
+];
+
+// Keep fan-out sane so we don't trip TMDB's rate limit.
+async function mapLimit(list, limit, fn) {
+  const out = new Array(list.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < list.length) {
+      const i = next++;
+      out[i] = await fn(list[i]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, list.length) }, worker));
+  return out;
+}
+
+async function tvIdItems(ids) {
+  const shows = await mapLimit(ids, 6, id => tmdb(`/tv/${id}`).catch(() => null));
+  return shows.filter(s => s?.poster_path).map(toTVCard);
+}
+
+// Kaiju are split across movies and TV on TMDB, so the Ultraman shelf pulls
+// both. Keyword 161791 is TMDB's "kaiju"; light vote floors keep out fan edits.
+const KAIJU_KEYWORD_ID = 161791;
+const KAIJU_EXCLUDE = /power rangers|sentai/i;
+
+async function kaijuItems() {
+  const [movies, shows] = await Promise.all([
+    mapLimit([1, 2], 2, page => tmdb('/discover/movie', {
+      with_keywords: String(KAIJU_KEYWORD_ID),
+      sort_by: 'popularity.desc',
+      'vote_count.gte': 20,
+      include_adult: false,
+      page,
+    }).catch(() => ({ results: [] }))),
+    tmdb('/discover/tv', {
+      with_keywords: String(KAIJU_KEYWORD_ID),
+      sort_by: 'popularity.desc',
+      'vote_count.gte': 10,
+      include_adult: false,
+    }).catch(() => ({ results: [] })),
+  ]);
+
+  const seen = new Set();
+  return [...movies.flatMap(p => p.results || []), ...(shows.results || [])]
+    .filter(i => i.poster_path && !KAIJU_EXCLUDE.test(i.title || i.name || ''))
+    .filter(i => !seen.has(i.id) && seen.add(i.id))
+    .map(i => ({ ...i, media_type: i.first_air_date ? 'tv' : 'movie' }));
+}
+
+async function ultramanKaijuItems() {
+  const [ultraman, kaiju] = await Promise.all([tvIdItems(ULTRAMAN_TV_IDS), kaijuItems()]);
+  const seen = new Set();
+  return [...ultraman, ...kaiju].filter(i => !seen.has(i.id) && seen.add(i.id));
+}
+
+// The MCU in release order. Curated IDs keep out the making-of specials,
+// LEGO shorts and other Marvel Studios titles that aren't part of the saga.
+const MCU_MOVIE_IDS = [
+  1726, 1724, 10138, 10195, 1771, 24428,                   // Phase 1
+  68721, 76338, 100402, 118340, 99861, 102899,             // Phase 2
+  271110, 284052, 283995, 315635, 284053, 284054, 299536,
+  363088, 299537, 299534, 429617,                          // Phase 3
+  497698, 566525, 524434, 634649, 453395, 616037, 505642,  // Phase 4
+  640146, 447365, 609681, 533535, 822119, 986056, 617126,  // Phase 5
+  1439930, 969681,                                         // Phase 6
+];
+
+async function mcuItems() {
+  const movies = await mapLimit(MCU_MOVIE_IDS, 6, id => tmdb(`/movie/${id}`).catch(() => null));
+  return movies
+    .filter(m => m?.poster_path)
+    .sort((a, b) => (b.release_date || '').localeCompare(a.release_date || ''))
+    .map(m => ({ ...m, media_type: 'movie' }));
+}
+
 const KIDS_SECTIONS = [
   { key: 'cn-classics',   title: 'Cartoon Network Classics', type: 'tv', params: { with_networks: '56', 'first_air_date.lte': '2012-12-31', with_genres: '16', sort_by: 'vote_count.desc' } },
   { key: 'nick-classics', title: 'Nickelodeon Classics',     type: 'tv', params: { with_networks: '13', 'first_air_date.lte': '2012-12-31', sort_by: 'vote_count.desc' } },
   { key: 'cartoons',  title: 'Morning Cartoons',      type: 'movie', params: { with_genres: '16', certification_country: 'US', certification: 'G|PG' } },
   { key: 'family',    title: 'Family Movie Night',    type: 'movie', params: { with_genres: '10751', without_genres: '16,27,53,80,10752', certification_country: 'US', certification: 'G|PG', 'vote_count.gte': 50 } },
-  { key: 'rangers',   title: 'Power Rangers',         type: 'tv',    path: '/search/tv', params: { query: 'Power Rangers' }, exclude: /sentai/i },
-  { key: 'ultraman',  title: 'Ultraman & Kaiju',      type: 'tv',    params: { with_keywords: '281450|161791', sort_by: 'popularity.desc' }, exclude: /power rangers|sentai/i },
+  { key: 'mcu',       title: 'MCU',                   type: 'movie', load: mcuItems },
+  { key: 'rangers',   title: 'Power Rangers',         type: 'tv',    load: powerRangersItems },
+  { key: 'ultraman',  title: 'Ultraman & Kaiju',      type: 'tv',    load: ultramanKaijuItems },
   { key: 'little',    title: 'Little Ones',           type: 'tv',    params: { with_genres: '10762', with_networks: '281|35' } },
   { key: 'toons',     title: 'Animated Adventures',   type: 'tv',    params: { with_genres: '16,10762' } },
   { key: 'magic',     title: 'Magic & Make-Believe',  type: 'movie', params: { with_genres: '10751,14', certification_country: 'US', certification: 'G|PG' } },
@@ -165,20 +309,57 @@ function usRating(type, data) {
 
 // Generic shelf builder shared by Kids / Movies / Series.
 // A shelf is either a /discover query (default) or a direct TMDB `path`.
+// TMDB returns at most 20 results per page, so walk a few pages to fill the
+// shelf up to SHELF_LIMIT (50) instead of stopping at the first 20.
+const SHELF_LIMIT = 50;
+const TMDB_PAGE_SIZE = 20;
+const SHELF_PAGES = Math.ceil(SHELF_LIMIT / TMDB_PAGE_SIZE);
+
+async function shelfItems(s, base) {
+  if (s.load) {
+    const loaded = await s.load().catch(() => []);
+    return loaded.filter(i => i?.poster_path).slice(0, SHELF_LIMIT);
+  }
+
+  const endpoint = s.path || `/discover/${s.type}`;
+  const seen = new Set();
+  const items = [];
+
+  for (let page = 1; page <= SHELF_PAGES && items.length < SHELF_LIMIT; page++) {
+    let results = [];
+    try {
+      const params = { ...(s.path ? {} : base), ...(s.params || {}), page };
+      results = (await tmdb(endpoint, params)).results || [];
+    } catch {
+      // A failed page shouldn't blank the whole shelf; keep what we have.
+      break;
+    }
+    if (!results.length) break;
+
+    for (const item of results) {
+      if (items.length >= SHELF_LIMIT) break;
+      if (!item.poster_path || seen.has(item.id)) continue;
+      if (s.exclude && s.exclude.test(item.name || item.title || '')) continue;
+      seen.add(item.id);
+      items.push(item);
+    }
+
+    // Last page reached — no point asking for more.
+    if (results.length < TMDB_PAGE_SIZE) break;
+  }
+
+  return items;
+}
+
 async function buildShelves(cache, defs, base = {}) {
   if (Date.now() - cache.at < NETFLIX_TTL && cache.data) return cache.data;
 
-  const sections = await Promise.all(defs.map(async s => {
-    try {
-      const data = s.path
-        ? await tmdb(s.path, s.params || {})
-        : await tmdb(`/discover/${s.type}`, { ...base, ...s.params });
-      return { key: s.key, title: s.title, type: s.type, items: (data.results || []).filter(i =>
-        i.poster_path && (!s.exclude || !s.exclude.test(i.name || i.title || ''))) };
-    } catch {
-      return { key: s.key, title: s.title, type: s.type, items: [] };
-    }
-  }));
+  const sections = await Promise.all(defs.map(async s => ({
+    key: s.key,
+    title: s.title,
+    type: s.type,
+    items: await shelfItems(s, base),
+  })));
 
   const data = sections.filter(s => s.items.length);
   cache.at = Date.now();
@@ -216,7 +397,7 @@ const SERIES_SECTIONS = [
   { key: 'airing',   title: 'On the Air',              type: 'tv', path: '/tv/on_the_air' },
   { key: 'popular',  title: 'Popular Right Now',       type: 'tv', params: {} },
   { key: 'top',      title: 'Top Rated Series',        type: 'tv', params: { sort_by: 'vote_average.desc', 'vote_count.gte': 1000 } },
-  { key: 'indian',   title: 'Indian Web Series',       type: 'tv', params: { with_origin_country: 'IN', 'vote_count.gte': 20 } },
+  { key: 'indian',   title: 'Indian Web Series',       type: 'tv', params: { with_origin_country: 'IN', sort_by: 'first_air_date.desc', 'first_air_date.gte': isoDaysAgo(1095), 'vote_count.gte': 10 } },
   { key: 'netflix',  title: 'Just Lit on Netflix',     type: 'tv', params: { with_watch_providers: '8',    watch_region: 'IN', with_watch_monetization_types: 'flatrate', sort_by: 'first_air_date.desc', 'first_air_date.lte': 'TODAY', 'vote_count.gte': 0 } },
   { key: 'prime',    title: 'Just Lit on Prime Video', type: 'tv', params: { with_watch_providers: '119',  watch_region: 'IN', with_watch_monetization_types: 'flatrate', sort_by: 'first_air_date.desc', 'first_air_date.lte': 'TODAY', 'vote_count.gte': 0 } },
   { key: 'hotstar',  title: 'Just Lit on JioHotstar',  type: 'tv', params: { with_watch_providers: '2336', watch_region: 'IN', with_watch_monetization_types: 'flatrate', sort_by: 'first_air_date.desc', 'first_air_date.lte': 'TODAY', 'vote_count.gte': 0 } },
@@ -230,76 +411,23 @@ const SERIES_SECTIONS = [
   { key: 'docs',     title: 'Documentaries',           type: 'tv', params: { with_genres: '99' } },
 ];
 
-const moviesSections = (safe = false) => buildShelves(_moviesCache, MOVIES_SECTIONS, MOVIE_BASE, safe);
+const moviesSections = () => buildShelves(_moviesCache, MOVIES_SECTIONS, MOVIE_BASE);
 // "TODAY" is resolved per request so the Just Lit shelves never go stale.
-const seriesSections = (safe = false) => {
+const seriesSections = () => {
   const today = new Date().toISOString().slice(0, 10);
   const defs = SERIES_SECTIONS.map(s => s.params && s.params['first_air_date.lte'] === 'TODAY'
     ? { ...s, params: { ...s.params, 'first_air_date.lte': today, 'first_air_date.gte': isoDaysAgo(730) } }
     : s);
-  return buildShelves(_seriesCache, defs, SERIES_BASE, safe);
+  return buildShelves(_seriesCache, defs, SERIES_BASE);
 };
 
-app.get('/api/trending/:type', async (req, res) => {
-  try {
-    const type = req.params.type;
-    if (req.query.safe === '1' && (type === 'movie' || type === 'tv')) {
-      const dateKey = type === 'movie' ? 'primary_release_date' : 'first_air_date';
-      return res.json(await tmdb(`/discover/${type}`, {
-        sort_by: 'popularity.desc',
-        [`${dateKey}.gte`]: isoDaysAgo(60),
-        ...safeParams(type),
-      }));
-    }
-    res.json(await tmdb(`/trending/${type}/week`));
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-app.get('/api/top-rated/:type', async (req, res) => {
-  try {
-    const type = req.params.type;
-    const safe = req.query.safe === '1';
-    if (safe) {
-      return res.json(await tmdb(`/discover/${type}`, {
-        sort_by: 'vote_average.desc',
-        'vote_count.gte': type === 'movie' ? 2000 : 500,
-        ...safeParams(type),
-      }));
-    }
-    res.json(await tmdb(`/${type}/top_rated`));
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-app.get('/api/popular/:type', async (req, res) => {
-  try {
-    const type = req.params.type;
-    const safe = req.query.safe === '1';
-    if (safe) {
-      return res.json(await tmdb(`/discover/${type}`, {
-        sort_by: 'popularity.desc',
-        'vote_count.gte': 100,
-        ...safeParams(type),
-      }));
-    }
-    res.json(await tmdb(`/${type}/popular`));
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-app.get('/api/now-playing', async (req, res) => {
-  try {
-    if (req.query.safe === '1') {
-      return res.json(await tmdb('/discover/movie', {
-        sort_by: 'popularity.desc',
-        region: 'IN',
-        with_release_type: '2|3',
-        'primary_release_date.gte': isoDaysAgo(45),
-        'primary_release_date.lte': new Date().toISOString().slice(0, 10),
-        ...safeParams('movie'),
-      }));
-    }
-    res.json(await tmdb('/movie/now_playing'));
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
+app.get('/api/trending/:type',     async (req, res) => { try { res.json(await tmdb(`/trending/${req.params.type}/week`)); } catch (e) { res.status(500).json({ error: e.message }); } });
+app.get('/api/top-rated/:type',    async (req, res) => { try { res.json(await tmdb(`/${req.params.type}/top_rated`)); } catch (e) { res.status(500).json({ error: e.message }); } });
+app.get('/api/popular/:type',      async (req, res) => { try { res.json(await tmdb(`/${req.params.type}/popular`)); } catch (e) { res.status(500).json({ error: e.message }); } });
+app.get('/api/now-playing',        async (req, res) => { try { res.json(await tmdb('/movie/now_playing')); } catch (e) { res.status(500).json({ error: e.message }); } });
 app.get('/api/anime',              async (req, res) => { try { res.json(await tmdb('/discover/tv', { with_genres: '16', sort_by: 'popularity.desc', with_original_language: 'ja', 'vote_count.gte': 100 })); } catch (e) { res.status(500).json({ error: e.message }); } });
 app.get('/api/bollywood',          async (req, res) => { try { res.json(await tmdb('/discover/movie', { sort_by: 'popularity.desc', with_original_language: 'hi', 'vote_count.gte': 100, region: 'IN' })); } catch (e) { res.status(500).json({ error: e.message }); } });
-app.get('/api/indian-series',      async (req, res) => { try { res.json(await tmdb('/discover/tv', { sort_by: 'popularity.desc', with_original_language: 'hi', 'vote_count.gte': 20 })); } catch (e) { res.status(500).json({ error: e.message }); } });
+app.get('/api/indian-series',      async (req, res) => { try { res.json(await tmdb('/discover/tv', { sort_by: 'first_air_date.desc', 'first_air_date.gte': isoDaysAgo(1460), 'first_air_date.lte': new Date().toISOString().slice(0, 10), with_original_language: 'hi', 'vote_count.gte': 10 })); } catch (e) { res.status(500).json({ error: e.message }); } });
 app.get('/api/netflix-india', async (req, res) => {
   try {
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
@@ -318,11 +446,11 @@ app.get('/api/kids', async (req, res) => {
   catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.get('/api/movies', async (req, res) => {
-  try { res.json({ sections: await moviesSections(req.query.safe === '1') }); }
+  try { res.json({ sections: await moviesSections() }); }
   catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.get('/api/series', async (req, res) => {
-  try { res.json({ sections: await seriesSections(req.query.safe === '1') }); }
+  try { res.json({ sections: await seriesSections() }); }
   catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.get('/api/new-on/:platform', async (req, res) => {
@@ -349,11 +477,10 @@ app.get('/api/south-indian', async (req, res) => {
 });
 app.get('/api/discover/:type', async (req, res) => {
   try {
-    const { genre, sort_by = 'popularity.desc', page = 1, with_networks, safe } = req.query;
+    const { genre, sort_by = 'popularity.desc', page = 1, with_networks } = req.query;
     const params = { sort_by, page, 'vote_count.gte': 20 };
     if (genre) params.with_genres = genre;
     if (with_networks) params.with_networks = with_networks;
-    if (safe === '1') Object.assign(params, safeParams(req.params.type));
     res.json(await tmdb(`/discover/${req.params.type}`, params));
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

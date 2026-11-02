@@ -2,6 +2,7 @@
 .mrow + .mrow { margin-top: 28px; }
 
 .mrow-header { display: flex; align-items: center; justify-content: space-between; padding: 0 56px 14px; }
+.mrow-hactions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .mrow-title { font-size: 19px; font-weight: 700; color: #fff; }
 .mrow-seeall { font-size: 13px; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 4px; padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(70,211,105,0.3); background: none; cursor: pointer; transition: all 0.18s; }
 .mrow-seeall:hover { background: var(--accent-dim); border-color: var(--accent); }

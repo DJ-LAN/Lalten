@@ -143,7 +143,7 @@ export default function Settings() {
           <div className="sp-toggle-row">
             <div>
               <p className="sp-toggle-label">Block R-rated</p>
-              <p className="sp-hint" style={{marginBottom:0}}>Hides restricted movies and mature series while browsing. Opening one shows a warning first.</p>
+              <p className="sp-hint" style={{marginBottom:0}}>Shows a warning before opening restricted movies or mature series. Nothing is hidden from browsing.</p>
             </div>
             <button className={`sp-toggle ${safeMode?'on':'off'}`} onClick={toggleSafeMode}>
               <span className="sp-toggle-knob" />

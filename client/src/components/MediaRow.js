@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { poster, backdrop } from '../utils/api';
 import './MediaRow.css';
 
-export default function MediaRow({ title, items = [], type, browseType }) {
+export default function MediaRow({ title, items = [], type, browseType, actions }) {
   const [hoveredIdx, setHoveredIdx] = useState(null);
   const [focusedItem, setFocusedItem] = useState(null);
   const navigate = useNavigate();
@@ -23,17 +23,23 @@ export default function MediaRow({ title, items = [], type, browseType }) {
   };
   const open = (item) => {
     const tv = item.media_type === 'tv' || item.first_air_date;
-    navigate(tv ? `/tv/${item.id}` : `/movie/${item.id}`);
+    if (tv) navigate(`/tv/${item.id}${item.season_number ? `?season=${item.season_number}` : ''}`);
+    else navigate(`/movie/${item.id}`);
   };
 
   return (
     <section className="mrow">
       <div className="mrow-header">
         <h2 className="mrow-title">{title}</h2>
-        {browseType && (
-          <button className="mrow-seeall" onClick={() => navigate(`/browse/${browseType}`)}>
-            See all <span>›</span>
-          </button>
+        {(actions || browseType) && (
+          <div className="mrow-hactions">
+            {actions}
+            {browseType && (
+              <button className="mrow-seeall" onClick={() => navigate(`/browse/${browseType}`)}>
+                See all <span>›</span>
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -50,7 +56,7 @@ export default function MediaRow({ title, items = [], type, browseType }) {
 
           return (
             <div
-              key={item.id}
+              key={`${item.id}-${item.season_number || 0}`}
               className={`mcard ${exp ? 'expanded' : ''}`}
               onMouseEnter={() => onEnter(i, item)}
               onMouseLeave={onLeave}

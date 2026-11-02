@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import MediaRow from '../components/MediaRow';
 import RotatingTagline from '../components/RotatingTagline';
+import ShelfRow from '../components/ShelfRow';
 import './ShelfPage.css';
 
 // Shared "curated shelves" page — same layout as the Kids section.
@@ -34,7 +34,7 @@ export default function ShelfPage({ load, copy }) {
     </div>
   );
 
-  const all = sections.flatMap(s => s.items.map(i => ({ ...i, media_type: s.type })));
+  const all = sections.flatMap(s => s.items.map(i => ({ ...i, media_type: i.media_type || s.type })));
 
   // copy.taglines is the rotating headline; copy.title still works as a fallback.
   const taglines = copy.taglines
@@ -43,7 +43,8 @@ export default function ShelfPage({ load, copy }) {
   const surprise = () => {
     if (!all.length) return;
     const item = all[Math.floor(Math.random() * all.length)];
-    navigate(item.media_type === 'tv' ? `/tv/${item.id}` : `/movie/${item.id}`);
+    if (item.media_type === 'tv') navigate(`/tv/${item.id}${item.season_number ? `?season=${item.season_number}` : ''}`);
+    else navigate(`/movie/${item.id}`);
   };
 
   return (
@@ -63,7 +64,7 @@ export default function ShelfPage({ load, copy }) {
 
       <div className="shelf-rows">
         {sections.filter(s => s.items.length).map(s => (
-          <MediaRow key={s.key} title={s.title} items={s.items} type={s.type} />
+          <ShelfRow key={s.key} title={s.title} items={s.items} type={s.type} />
         ))}
       </div>
 

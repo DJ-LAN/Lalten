@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import MediaRow from '../components/MediaRow';
 import RotatingTagline from '../components/RotatingTagline';
+import ShelfRow from '../components/ShelfRow';
 import { api } from '../utils/api';
 import { LANTERN_ASKS } from '../utils/taglines';
 import './Kids.css';
@@ -71,12 +71,13 @@ export default function Kids() {
     </div>
   );
 
-  const all = sections.flatMap(s => s.items.map(i => ({ ...i, media_type: s.type })));
+  const all = sections.flatMap(s => s.items.map(i => ({ ...i, media_type: i.media_type || s.type })));
 
   const surprise = () => {
     if (!all.length) return;
     const item = all[Math.floor(Math.random() * all.length)];
-    navigate(item.media_type === 'tv' ? `/tv/${item.id}` : `/movie/${item.id}`);
+    if (item.media_type === 'tv') navigate(`/tv/${item.id}${item.season_number ? `?season=${item.season_number}` : ''}`);
+    else navigate(`/movie/${item.id}`);
   };
 
   return (
@@ -102,7 +103,7 @@ export default function Kids() {
 
       <div className="kids-rows">
         {sections.filter(s => s.items.length).map(s => (
-          <MediaRow key={s.key} title={s.title} items={s.items} type={s.type} />
+          <ShelfRow key={s.key} title={s.title} items={s.items} type={s.type} />
         ))}
       </div>
 

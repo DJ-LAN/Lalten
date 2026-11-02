@@ -12,17 +12,8 @@ export const IMG = 'https://image.tmdb.org/t/p';
 export const poster   = (p, s = 'w342')  => p ? `${IMG}/${s}${p}` : null;
 export const backdrop = (p, s = 'w1280') => p ? `${IMG}/${s}${p}` : null;
 
-// When the R-rated filter is on, every request carries safe=1 so the server
-// can apply TMDB certification limits to list endpoints.
-function withSafety(url) {
-  try {
-    if (localStorage.getItem('ln_safe') !== 'true') return url;
-  } catch { return url; }
-  return url + (url.includes('?') ? '&' : '?') + 'safe=1';
-}
-
 async function get(url) {
-  const res = await fetch(BASE + withSafety(url));
+  const res = await fetch(BASE + url);
   if (!res.ok) { const t = await res.text().catch(() => ''); throw new Error(`API ${res.status}: ${t.slice(0,80)}`); }
   return res.json();
 }
