@@ -37,7 +37,7 @@ const copy = {
     'Hindi dub,|full nostalgia.',
     'KAAJU|UNIVERSSS....!',
 	'Fees Lauta do hamari|Warna APP Delete!!',
-	'GussaSeth|...........?',
+	'GussaSeth|was here!!!',
     'Ek episode,|phir pakka band!.',
     'Binge mode,|do not disturb.',
     'Next episode|loads in 3... 2...',
