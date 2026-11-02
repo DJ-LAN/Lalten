@@ -27,7 +27,7 @@ const KIDS_TAGLINES = [
   'Spandex squad,|snack attack.',
   'KAAJU|UNIVERSSS....!',
   'Fees Lauta do hamari|Warna APP Delete!!',
-  'GussaSeth|...........?',
+  'GussaSeth|was here!!!',
   'Giant hero,|tiny remote.',
   'Kaiju-sized trouble,|snack-sized hero.',
   'Oggy’s House,|= Jack’s chaos.',
@@ -41,7 +41,7 @@ const KIDS_TAGLINES = [
   'Save the world,|then clean your room.',
   'Cape optional,|courage included.',
   'Mighty heroes,|tiny pyjamas.',
-  'Pow! Bam!|Bedtime.',
+  'Pow! Bam!|Bedtime!!',
   ...LANTERN_ASKS,
 ];
 
