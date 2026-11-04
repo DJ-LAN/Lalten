@@ -26,7 +26,7 @@ export default function Settings() {
   const [colorSaved, setColorSaved]   = useState(false);
   const [videoEnabled, setVideoEnabled] = useState(localStorage.getItem('ln_video') !== 'false');
   const [autoTrailer, setAutoTrailer] = useState(localStorage.getItem('ln_autotrailer') !== 'false');
-  const [trailerAudio, setTrailerAudio] = useState(localStorage.getItem('ln_trailer_audio') !== 'false');
+  const [trailerAudio, setTrailerAudio] = useState(localStorage.getItem('ln_trailer_audio') === 'true');
   const [trailerVolume, setTrailerVolume] = useState(() => {
     const stored = localStorage.getItem('ln_trailer_volume');
     const saved = stored === null ? 55 : Number(stored);
@@ -156,20 +156,20 @@ export default function Settings() {
           <div className="sp-toggle-row" style={{marginTop:20}}>
             <div>
               <p className="sp-toggle-label">Trailer audio</p>
-              <p className="sp-hint" style={{marginBottom:0}}>Allow background trailers to play sound. Your browser may require a click or key press before audio can start.</p>
+              <p className="sp-hint" style={{marginBottom:0}}>Off by default. When on, a background trailer can play sound after you click or press a key. Only used while background trailers are on.</p>
             </div>
-            <button className={`sp-toggle ${trailerAudio?'on':'off'}`} onClick={toggleTrailerAudio} aria-label="Toggle trailer audio" aria-pressed={trailerAudio}>
+            <button className={`sp-toggle ${trailerAudio?'on':'off'}`} onClick={toggleTrailerAudio} disabled={!autoTrailer} aria-label="Toggle trailer audio" aria-pressed={trailerAudio}>
               <span className="sp-toggle-knob" />
             </button>
           </div>
-          <p className="sp-toggle-status">Trailer audio is <strong style={{color:trailerAudio?'var(--accent)':'#e74c3c'}}>{trailerAudio?'on':'off'}</strong>.</p>
-          <div className={`sp-trailer-volume ${trailerAudio?'':'disabled'}`}>
+          <p className="sp-toggle-status">Trailer audio is <strong style={{color:trailerAudio?'var(--accent)':'#e74c3c'}}>{trailerAudio?'on':'off'}</strong>{!autoTrailer && ' — background trailers are off'}.</p>
+          <div className={`sp-trailer-volume ${trailerAudio && autoTrailer?'':'disabled'}`}>
             <div className="sp-volume-heading">
               <label className="sp-toggle-label" htmlFor="trailer-volume">Trailer volume</label>
               <strong>{trailerVolume}%</strong>
             </div>
             <input id="trailer-volume" className="sp-volume-range" type="range" min="0" max="100" step="1" value={trailerVolume}
-              onChange={e => updateTrailerVolume(e.target.value)} disabled={!trailerAudio} aria-label="Trailer volume" />
+              onChange={e => updateTrailerVolume(e.target.value)} disabled={!trailerAudio || !autoTrailer} aria-label="Trailer volume" />
             <p className="sp-hint" style={{marginBottom:0}}>Default volume: 55%.</p>
           </div>
         </div>

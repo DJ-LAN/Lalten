@@ -33,7 +33,7 @@ function loadYouTubeAPI() {
 export default function BackgroundTrailer({
   videoKey,
   enabled = true,
-  audioEnabled = true,
+  audioEnabled = false,
   volume = 55,
   delay = DEFAULT_DELAY
 }) {
@@ -56,6 +56,28 @@ export default function BackgroundTrailer({
       player.mute();
     }
   }, [audioEnabled, volume]);
+
+  // Remember the first real gesture even if it happens before the trailer
+  // appears. Browsers only allow audio to start after an interaction, so this
+  // lets the 5-second delay use a click that already happened.
+  useEffect(() => {
+    const enableAudio = () => {
+      interactedRef.current = true;
+      const player = playerRef.current;
+      if (settingsRef.current.audioEnabled && player && player.unMute) {
+        player.setVolume(Number(settingsRef.current.volume));
+        player.unMute();
+        player.playVideo();
+      }
+    };
+
+    window.addEventListener('pointerdown', enableAudio, { passive: true });
+    window.addEventListener('keydown', enableAudio);
+    return () => {
+      window.removeEventListener('pointerdown', enableAudio);
+      window.removeEventListener('keydown', enableAudio);
+    };
+  }, []);
 
   useEffect(() => {
     setShow(false);
@@ -112,23 +134,8 @@ export default function BackgroundTrailer({
       playerRef.current = player;
     }).catch(() => {});
 
-    const enableAudioAfterInteraction = () => {
-      interactedRef.current = true;
-      const currentPlayer = playerRef.current;
-      if (settingsRef.current.audioEnabled && currentPlayer) {
-        currentPlayer.setVolume(Number(settingsRef.current.volume));
-        currentPlayer.unMute();
-        currentPlayer.playVideo();
-      }
-    };
-
-    window.addEventListener('pointerdown', enableAudioAfterInteraction, { passive: true });
-    window.addEventListener('keydown', enableAudioAfterInteraction);
-
     return () => {
       cancelled = true;
-      window.removeEventListener('pointerdown', enableAudioAfterInteraction);
-      window.removeEventListener('keydown', enableAudioAfterInteraction);
       playerRef.current = null;
       if (player && player.destroy) player.destroy();
     };

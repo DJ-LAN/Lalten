@@ -19,7 +19,7 @@ export default function TVDetail() {
   const [loadingEps, setLoadingEps] = useState(false);
   const videoEnabled = localStorage.getItem('ln_video') !== 'false';
   const autoTrailer = localStorage.getItem('ln_autotrailer') !== 'false';
-  const trailerAudio = localStorage.getItem('ln_trailer_audio') !== 'false';
+  const trailerAudio = localStorage.getItem('ln_trailer_audio') === 'true';
   const storedTrailerVolume = localStorage.getItem('ln_trailer_volume');
   const savedTrailerVolume = storedTrailerVolume === null ? 55 : Number(storedTrailerVolume);
   const trailerVolume = Number.isFinite(savedTrailerVolume) && savedTrailerVolume >= 0 && savedTrailerVolume <= 100
