@@ -67,6 +67,7 @@ export const api = {
 
 // One descriptor per provider keeps the button label and URL in sync.
 // `meta.imdbId` is only needed by VaPlayer, which addresses movies by IMDb ID.
+// `Anime 1` uses Zokoanime's MAL-id endpoint and always plays the dub track.
 // Order matters: index 0 is the default source.
 export const SOURCES = {
   movie: [
@@ -92,6 +93,7 @@ export const SOURCES = {
     { label: 'VidNest',  build: (id, meta, s, e) => `https://vidnest.pro/tv/${id}/${s}/${e}?autoplay=true` },
     { label: 'VidFast',  build: (id, meta, s, e) => `https://vidfast.vc/tv/${id}/${s}/${e}?autoplay=true` },
     { label: 'XPass',    build: (id, meta, s, e) => `https://play.xpass.top/e/tv/${id}/${s}/${e}` },
+    { label: 'Anime 1',  build: (id, meta, s, e) => `https://zokoanime.video/stream/mal/${id}/${e}/dub?=1` },
   ],
 };
 
